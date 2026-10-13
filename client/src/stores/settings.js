@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { load, save } from '../utils/storage'
 
-// 模型提供商定义（与后端 server/index.js 中的 PROVIDERS 保持一致）
+// 需与 api/chat.js 的 PROVIDERS 保持一致
 export const PROVIDERS = {
   deepseek: {
     label: 'DeepSeek',
     models: [
-      { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-      { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner' },
+      { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
+      { value: 'deepseek-flash', label: 'DeepSeek Flash' },
     ],
   },
   kimi: {
@@ -22,19 +22,32 @@ export const PROVIDERS = {
 
 const DEFAULTS = {
   provider: 'deepseek',
-  model: 'deepseek-chat',
+  model: 'deepseek-v4-pro',
+  deepThinking: true,
   systemPrompt: '',
   temperature: 0.7,
   maxContextTokens: 4000,
 }
 
 export const useSettingsStore = defineStore('settings', {
-  state: () => ({ ...DEFAULTS, ...load('settings', {}) }),
+  state: () => {
+    const saved = load('settings', {})
+    // 校验持久化数据，provider/model 失效（如版本升级删减）时回退默认值
+    const provider = PROVIDERS[saved.provider] ? saved.provider : DEFAULTS.provider
+    const model = PROVIDERS[provider].models.some((m) => m.value === saved.model)
+      ? saved.model
+      : PROVIDERS[provider].models[0].value
+    return { ...DEFAULTS, ...saved, provider, model }
+  },
+  getters: {
+    // 深度思考开关 → DeepSeek effort 档位
+    effort: (state) => (state.deepThinking ? 'high' : 'low'),
+  },
   actions: {
     setProvider(provider) {
       if (!PROVIDERS[provider]) return
       this.provider = provider
-      // 切换提供商时若当前 model 不在其列表内，则自动切到第一个
+      // 模型不存在时回退到第一个
       const models = PROVIDERS[provider].models
       if (!models.some((m) => m.value === this.model)) {
         this.model = models[0].value
@@ -53,12 +66,17 @@ export const useSettingsStore = defineStore('settings', {
       this.temperature = temperature
       this.persist()
     },
+    setDeepThinking(deepThinking) {
+      this.deepThinking = deepThinking
+      this.persist()
+    },
     persist() {
       save('settings', {
         provider: this.provider,
         model: this.model,
         systemPrompt: this.systemPrompt,
         temperature: this.temperature,
+        deepThinking: this.deepThinking,
         maxContextTokens: this.maxContextTokens,
       })
     },

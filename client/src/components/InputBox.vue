@@ -1,23 +1,25 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import { useChatStore } from '../stores/chat'
-import { debounce } from '../utils/debounce'
 
 const chat = useChatStore()
 const text = ref('')
 const boxEl = ref(null)
 
-// 防抖：短时间内重复触发只发送一次（send 内部另有 streaming 请求锁兜底）
-const dispatch = debounce((value) => chat.send(value), 150)
-
-async function submit() {
+function submit() {
   const value = text.value.trim()
   if (!value || chat.streaming) return
   text.value = ''
   autoResize()
-  dispatch(value)
-  await nextTick()
-  boxEl.value?.focus()
+  chat.send(value)
+  nextTick(() => boxEl.value?.focus())
+}
+
+// IME 组合中的 Enter 是确认拼音，不发送；keyCode 229 兼容旧浏览器
+function onEnter(e) {
+  if (e.isComposing || e.keyCode === 229) return
+  e.preventDefault()
+  submit()
 }
 
 function autoResize() {
@@ -38,7 +40,7 @@ function autoResize() {
         placeholder="输入消息，Enter 发送，Shift + Enter 换行"
         class="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         @input="autoResize"
-        @keydown.enter.exact.prevent="submit"
+        @keydown.enter.exact="onEnter"
       ></textarea>
       <button
         v-if="chat.streaming"

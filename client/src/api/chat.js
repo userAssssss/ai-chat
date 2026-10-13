@@ -1,13 +1,14 @@
 import request from './request'
 
-// SSE 流式对话：解析 OpenAI 兼容的 data: {...} 协议，逐段回调 onDelta
+// 解析 SSE data: {...} 流
 export async function streamChat({
   provider,
   model,
   messages,
   temperature,
-  maxTokens,
+  effort,
   onDelta,
+  onReasoning,
   signal,
 }) {
   const res = await request('/api/chat', {
@@ -17,7 +18,7 @@ export async function streamChat({
       model,
       messages,
       temperature,
-      ...(maxTokens ? { max_tokens: maxTokens } : {}),
+      effort,
     }),
     signal,
   })
@@ -33,11 +34,10 @@ export async function streamChat({
     if (!data || data === '[DONE]') return
     try {
       const json = JSON.parse(data)
-      const delta = json.choices?.[0]?.delta?.content
-      if (delta) onDelta(delta)
-    } catch {
-      // 忽略无法解析的行
-    }
+      const delta = json.choices?.[0]?.delta
+      if (delta?.content) onDelta(delta.content)
+      if (delta?.reasoning_content) onReasoning?.(delta.reasoning_content)
+    } catch {}
   }
 
   while (true) {

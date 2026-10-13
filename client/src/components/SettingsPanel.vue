@@ -48,6 +48,19 @@ function applyPreset(p) {
         </option>
       </select>
 
+      <button
+        class="shrink-0 rounded-lg border px-3 py-1.5 text-sm transition"
+        :class="
+          settings.deepThinking
+            ? 'border-blue-300 bg-blue-50 text-blue-600'
+            : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+        "
+        :title="settings.deepThinking ? '已开启：模型会先深入思考再回答' : '已关闭：快速浅思考回答'"
+        @click="settings.setDeepThinking(!settings.deepThinking)"
+      >
+        🧠 深度思考{{ settings.deepThinking ? '：开' : '：关' }}
+      </button>
+
       <div class="flex-1"></div>
 
       <button

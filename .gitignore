@@ -7,7 +7,13 @@ dist
 .env.*
 !.env.example
 
+# Vercel
+.vercel
+
 # 日志与系统文件
 *.log
 .DS_Store
 Thumbs.db
+
+# 测试产物（截图等）
+gui-test-screenshots/

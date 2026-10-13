@@ -21,12 +21,12 @@ export default [
       },
     },
     rules: {
-      // 组件名允许单个单词（如 App.vue、Sidebar.vue）
       'vue/multi-word-component-names': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
   {
-    // commitlint 等 CommonJS 配置文件
+    // CJS 配置文件
     files: ['**/*.cjs'],
     languageOptions: {
       sourceType: 'commonjs',

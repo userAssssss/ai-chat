@@ -12,11 +12,5 @@ export function load(key, fallback) {
 export function save(key, value) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value))
-  } catch {
-    // 存储空间不足等情况，静默忽略
-  }
-}
-
-export function remove(key) {
-  localStorage.removeItem(PREFIX + key)
+  } catch {}
 }
