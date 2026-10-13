@@ -1,6 +1,7 @@
 # AI Chat
 
 一个基于 Vue 3 的 AI 智能对话助手，支持多模型提供商、流式输出、深度思考展示，可直接部署到 Vercel。
+在线使用：https://ai-chat-client-snowy.vercel.app/
 
 ## 功能特性
 
